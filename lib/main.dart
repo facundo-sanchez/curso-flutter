@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  // runApp(ChangeNotifierProvider(
+  //   create: (context) => CounterProvider(),
+  //   child: const MyApp(),
+  // ));
+  runApp(MultiProvider(
+    providers: [ChangeNotifierProvider(create: (context) => CounterProvider())],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -55,31 +63,24 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class CounterProvider extends ChangeNotifier {
   int _counter = 0;
+
+  int get counter => _counter;
+
+  void increment() {
+    _counter++;
+    notifyListeners();
+  }
+
+  void decrement() {
+    _counter--;
+    notifyListeners();
+  }
+}
+
+class _MyHomePageState extends State<MyHomePage> {
   MainAxisAlignment _layout = MainAxisAlignment.center;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  void _decrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter--;
-    });
-  }
 
   MainAxisAlignment _nextEnumLayout(MainAxisAlignment value) {
     final nextIndex = (value.index + 1) % MainAxisAlignment.values.length;
@@ -92,18 +93,20 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  SpeedDialChild getComponents() {
-    if (_counter == 0) {
+  SpeedDialChild getComponentsDecrement() {
+    if (Provider.of<CounterProvider>(context).counter == 0) {
       return SpeedDialChild(
-        // onTap: null,
         label: 'Decrement',
         backgroundColor: Colors.grey[300],
         child: const Icon(Icons.remove),
       ); // This trailing comma makes auto-formatting nicer for build methods.
     }
     return SpeedDialChild(
-      onTap: _decrementCounter,
+      onTap: () {
+        Provider.of<CounterProvider>(context, listen: false).decrement();
+      },
       label: 'Decrement',
+      backgroundColor: Colors.red[300],
       child: const Icon(Icons.remove),
     );
   }
@@ -149,7 +152,7 @@ class _MyHomePageState extends State<MyHomePage> {
               'You have pushed the button this many times:',
             ),
             Text(
-              '$_counter',
+              Provider.of<CounterProvider>(context).counter.toString(),
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
@@ -162,16 +165,19 @@ class _MyHomePageState extends State<MyHomePage> {
           SpeedDialChild(
             child: const Icon(Icons.layers_outlined, color: Colors.white),
             label: 'Layout',
-            backgroundColor: Colors.blueAccent,
+            backgroundColor: Colors.green[300],
             onTap: _nextLayout,
           ),
-          getComponents(),
+          getComponentsDecrement(),
           SpeedDialChild(
-              onTap: _incrementCounter,
+              onTap: () {
+                Provider.of<CounterProvider>(context, listen: false)
+                    .increment();
+              },
               label: 'Increment',
               child: const Icon(Icons.add),
-              backgroundColor: Colors.blue[
-                  200]), // This trailing comma makes auto-formatting nicer for build methods.
+              backgroundColor: Colors
+                  .blueAccent), // This trailing comma makes auto-formatting nicer for build methods.
           // const SizedBox(height: 16),
         ],
       ),
